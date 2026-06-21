@@ -1,0 +1,106 @@
+package br.com.ufv.sistemamonitoramentoclimatico.dao;
+
+import br.com.ufv.sistemamonitoramentoclimatico.model.Clima;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
+public class ClimaDAO {
+
+    private static final String URL = "jdbc:sqlite:monitoramento.db";
+
+    public ClimaDAO() {
+        criarTabela();
+    }
+
+    private Connection conectar() throws SQLException {
+        return DriverManager.getConnection(URL);
+    }
+
+    private void criarTabela() {
+        String sql = "CREATE TABLE IF NOT EXISTS clima ("
+                   + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                   + "data TEXT NOT NULL,"
+                   + "temperatura REAL,"
+                   + "umidade REAL,"
+                   + "precipitacao REAL,"
+                   + "vento REAL"
+                   + ");";
+        try (Connection conn = conectar();
+             Statement stmt = conn.createStatement()) {
+            stmt.execute(sql);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void inserir(Clima clima) {
+        String sql = "INSERT INTO clima(data, temperatura, umidade, precipitacao, vento) VALUES(?,?,?,?,?)";
+        try (Connection conn = conectar();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, clima.getData().toString());
+            pstmt.setDouble(2, clima.getTemperatura());
+            pstmt.setDouble(3, clima.getUmidade());
+            pstmt.setDouble(4, clima.getPrecipitacao());
+            pstmt.setDouble(5, clima.getVento());
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public List<Clima> listar() {
+        String sql = "SELECT * FROM clima";
+        List<Clima> climas = new ArrayList<>();
+        try (Connection conn = conectar();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                Clima clima = new Clima();
+                clima.setId(rs.getInt("id"));
+                clima.setData(LocalDate.parse(rs.getString("data")));
+                clima.setTemperatura(rs.getDouble("temperatura"));
+                clima.setUmidade(rs.getDouble("umidade"));
+                clima.setPrecipitacao(rs.getDouble("precipitacao"));
+                clima.setVento(rs.getDouble("vento"));
+                climas.add(clima);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return climas;
+    }
+
+    public void atualizar(Clima clima) {
+        String sql = "UPDATE clima SET data = ?, temperatura = ?, umidade = ?, precipitacao = ?, vento = ? WHERE id = ?";
+        try (Connection conn = conectar();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, clima.getData().toString());
+            pstmt.setDouble(2, clima.getTemperatura());
+            pstmt.setDouble(3, clima.getUmidade());
+            pstmt.setDouble(4, clima.getPrecipitacao());
+            pstmt.setDouble(5, clima.getVento());
+            pstmt.setInt(6, clima.getId());
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void excluir(int id) {
+        String sql = "DELETE FROM clima WHERE id = ?";
+        try (Connection conn = conectar();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, id);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
