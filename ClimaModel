@@ -1,0 +1,74 @@
+package br.com.ufv.sistemamonitoramentoclimatico.model;
+
+import java.time.LocalDate;
+
+public class ClimaModel {
+    private int id;
+    private LocalDate data;
+    private double temperatura;
+    private double umidade;
+    private double precipitacao;
+    private double vento;
+
+    
+    public ClimaModel() {
+    }
+
+
+    public ClimaModel(LocalDate data, double temperatura, double umidade, double precipitacao, double vento) {
+        this.data = data;
+        this.temperatura = temperatura;
+        this.umidade = umidade;
+        this.precipitacao = precipitacao;
+        this.vento = vento;
+    }
+
+    
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public LocalDate getData() {
+        return data;
+    }
+
+    public void setData(LocalDate data) {
+        this.data = data;
+    }
+
+    public double getTemperatura() {
+        return temperatura;
+    }
+
+    public void setTemperatura(double temperatura) {
+        this.temperatura = temperatura;
+    }
+
+    public double getUmidade() {
+        return umidade;
+    }
+
+    public void setUmidade(double umidade) {
+        this.umidade = umidade;
+    }
+
+    public double getPrecipitacao() {
+        return precipitacao;
+    }
+
+    public void setPrecipitacao(double precipitacao) {
+        this.precipitacao = precipitacao;
+    }
+
+    public double getVento() {
+        return vento;
+    }
+
+    public void setVento(double vento) {
+        this.vento = vento;
+    }
+}
