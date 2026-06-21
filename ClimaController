@@ -1,0 +1,124 @@
+package br.com.ufv.sistemamonitoramentoclimatico.controller;
+
+import br.com.ufv.sistemamonitoramentoclimatico.dao.ClimaDAO;
+import br.com.ufv.sistemamonitoramentoclimatico.model.Clima;
+import java.time.LocalDate;
+import javafx.collections.FXCollections;
+import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
+import javafx.scene.control.DatePicker;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
+import javafx.scene.control.cell.PropertyValueFactory;
+
+public class ClimaController {
+
+    @FXML private DatePicker dpData;
+    @FXML private TextField txtTemperatura;
+    @FXML private TextField txtUmidade;
+    @FXML private TextField txtPrecipitacao;
+    @FXML private TextField txtVento;
+    @FXML private TableView<Clima> tabelaClima;
+    @FXML private TableColumn<Clima, Integer> colId;
+    @FXML private TableColumn<Clima, LocalDate> colData;
+    @FXML private TableColumn<Clima, Double> colTemperatura;
+    @FXML private TableColumn<Clima, Double> colUmidade;
+    @FXML private TableColumn<Clima, Double> colPrecipitacao;
+    @FXML private TableColumn<Clima, Double> colVento;
+
+    private ClimaDAO dao = new ClimaDAO();
+    private Clima climaSelecionado;
+
+    @FXML
+    public void initialize() {
+        configurarTabela();
+        carregarDados();
+    }
+
+    private void configurarTabela() {
+        colId.setCellValueFactory(new PropertyValueFactory<>("id"));
+        colData.setCellValueFactory(new PropertyValueFactory<>("data"));
+        colTemperatura.setCellValueFactory(new PropertyValueFactory<>("temperatura"));
+        colUmidade.setCellValueFactory(new PropertyValueFactory<>("umidade"));
+        colPrecipitacao.setCellValueFactory(new PropertyValueFactory<>("precipitacao"));
+        colVento.setCellValueFactory(new PropertyValueFactory<>("vento"));
+    }
+
+    private void carregarDados() {
+        tabelaClima.setItems(FXCollections.observableArrayList(dao.listar()));
+    }
+
+    @FXML
+    public void salvar() {
+        try {
+            LocalDate data = dpData.getValue();
+            double temp = Double.parseDouble(txtTemperatura.getText());
+            double umid = Double.parseDouble(txtUmidade.getText());
+            double prec = Double.parseDouble(txtPrecipitacao.getText());
+            double vent = Double.parseDouble(txtVento.getText());
+
+            if (climaSelecionado == null) {
+                Clima novoClima = new Clima(data, temp, umid, prec, vent);
+                dao.inserir(novoClima);
+                mostrarMensagem("Sucesso", "Registro salvo!");
+            } else {
+                climaSelecionado.setData(data);
+                climaSelecionado.setTemperatura(temp);
+                climaSelecionado.setUmidade(umid);
+                climaSelecionado.setPrecipitacao(prec);
+                climaSelecionado.setVento(vent);
+                dao.atualizar(climaSelecionado);
+                mostrarMensagem("Sucesso", "Registro atualizado!");
+            }
+            limparFormulario();
+            carregarDados();
+        } catch (Exception e) {
+            mostrarMensagem("Erro", "Verifique os dados informados.");
+        }
+    }
+
+    @FXML
+    public void editar() {
+        climaSelecionado = tabelaClima.getSelectionModel().getSelectedItem();
+        if (climaSelecionado != null) {
+            dpData.setValue(climaSelecionado.getData());
+            txtTemperatura.setText(String.valueOf(climaSelecionado.getTemperatura()));
+            txtUmidade.setText(String.valueOf(climaSelecionado.getUmidade()));
+            txtPrecipitacao.setText(String.valueOf(climaSelecionado.getPrecipitacao()));
+            txtVento.setText(String.valueOf(climaSelecionado.getVento()));
+        } else {
+            mostrarMensagem("Aviso", "Selecione um registro na tabela para editar.");
+        }
+    }
+
+    @FXML
+    public void excluir() {
+        climaSelecionado = tabelaClima.getSelectionModel().getSelectedItem();
+        if (climaSelecionado != null) {
+            dao.excluir(climaSelecionado.getId());
+            carregarDados();
+            limparFormulario();
+            mostrarMensagem("Sucesso", "Registro excluído!");
+        } else {
+            mostrarMensagem("Aviso", "Selecione um registro na tabela para excluir.");
+        }
+    }
+
+    private void limparFormulario() {
+        dpData.setValue(null);
+        txtTemperatura.clear();
+        txtUmidade.clear();
+        txtPrecipitacao.clear();
+        txtVento.clear();
+        climaSelecionado = null;
+    }
+
+    private void mostrarMensagem(String titulo, String conteudo) {
+        Alert alert = new Alert(titulo.equals("Erro") ? Alert.AlertType.ERROR : Alert.AlertType.INFORMATION);
+        alert.setTitle(titulo);
+        alert.setHeaderText(null);
+        alert.setContentText(conteudo);
+        alert.showAndWait();
+    }
+}
